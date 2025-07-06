@@ -10,7 +10,7 @@
                 {{-- Form Edit --}}
             </div>
             <div class="card-body">
-                <h5 class="fw py-1 mb-1">Edit Penilaian {{ $siswa->nama_siswa }}</h5>
+                <h5 class="fw py-1 mb-1"> Penilaian {{ $siswa->nama_siswa }}</h5>
 
 <form action="{{ route('penilaiansiswa.update', $siswa->id) }}" method="POST">
     @csrf
@@ -30,8 +30,8 @@
         </div>
     @endforeach
 
-    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-    <a href="{{ route('siswa.index') }}" class="btn btn-secondary">Batal</a>
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <a href="{{ route('penilaiansiswa.index') }}" class="btn btn-secondary">Kembali</a>
 </form>
 
             </div>

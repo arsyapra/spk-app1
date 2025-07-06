@@ -105,7 +105,7 @@
                   id="email"
                   name="email"
                   class="form-control"
-                  placeholder="Enter your email"
+                  placeholder="Masukan Email anda"
                   value="{{ old('email') }}"
                   required
                   autofocus
@@ -127,7 +127,7 @@
                 </div>
               </div>
 
-              <div class="mb-3">
+              {{-- <div class="mb-3">
                 <div class="form-check">
                   <input
                     class="form-check-input"
@@ -139,7 +139,7 @@
                     Remember me
                   </label>
                 </div>
-              </div>
+              </div> --}}
 
               <div class="mb-3">
                 <button class="btn btn-primary d-grid w-100" type="submit">
@@ -151,7 +151,7 @@
             <p class="text-center">
               <span>Belum punya akun?</span>
               <a href="{{ route('register') }}">
-                <span> Create an account</span>
+                <span> Klik disini</span>
               </a>
             </p>
           </div>

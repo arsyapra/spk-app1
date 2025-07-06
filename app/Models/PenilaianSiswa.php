@@ -9,14 +9,14 @@ class PenilaianSiswa extends Model
         use HasFactory;
         protected $table = 'penilaian_siswas'; // 
         protected $fillable = [
-        'siswa_id',
+        'user_id',
         'kriteria_id',
         'sub_kriteria_id',
         'nilai'
     ];
 
-    public function siswa(){
-        return $this->belongsTo(Siswa::class);
+    public function user(){
+        return $this->belongsTo(User::class);
     }
     public function kriteria(){
         return $this->belongsTo(Kriteria::class);

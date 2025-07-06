@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('penilaian_siswas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('siswa_id')->constrained()->onDelete('cascade'); // Hubungan dengan siswa
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Hubungan dengan siswa
             $table->foreignId('kriteria_id')->constrained()->onDelete('cascade'); // Hubungan dengan kriteria
             $table->foreignId('sub_kriteria_id')->constrained()->onDelete('cascade'); // Hubungan dengan kriteria
             $table->float('nilai'); // Nilai siswa berdasarkan kriteria (nilai akademik, minat, psikotes)

@@ -8,6 +8,7 @@ use App\Models\Penilaian;
 use App\Models\Alternatif;
 use App\Models\Nilai_akhir;
 use App\Models\Utility;
+use App\Models\User;
 use App\Models\NilaiAkhirSiswa;
 use App\Models\Siswa;
 use App\Models\PenilaianSiswa;
@@ -109,141 +110,143 @@ class SMARTController extends Controller
     }
 
     // 4. Hitung rekomendasi jurusan khusus untuk siswa tertentu
-public function hitungRekomendasiJurusan($siswa_id)
-{
-    $siswa = Siswa::findOrFail($siswa_id);
-    $kriterias = Kriteria::all();
-    $alternatifs = Alternatif::all();
+// public function hitungRekomendasiJurusan($siswa_id)
+// {
+//     $siswa = Siswa::findOrFail($siswa_id);
+//     $kriterias = Kriteria::all();
+//     $alternatifs = Alternatif::all();
 
-    // Ambil nilai siswa per kriteria
-    $nilai_siswa = [];
-    foreach ($kriterias as $kriteria) {
-        $nilai = PenilaianSiswa::where('siswa_id', $siswa->id)
-            ->where('kriteria_id', $kriteria->id)
-            ->value('nilai') ?? 0;
-        $nilai_siswa[$kriteria->id] = $nilai;
-    }
+//     // Ambil nilai siswa per kriteria
+//     $nilai_siswa = [];
+//     foreach ($kriterias as $kriteria) {
+//         $nilai = PenilaianSiswa::where('siswa_id', $siswa->id)
+//             ->where('kriteria_id', $kriteria->id)
+//             ->value('nilai') ?? 0;
+//         $nilai_siswa[$kriteria->id] = $nilai;
+//     }
 
-    // Ambil nilai ideal tiap jurusan per kriteria
-    $profil_jurusan = [];
-    foreach ($alternatifs as $alternatif) {
+//     // Ambil nilai ideal tiap jurusan per kriteria
+//     $profil_jurusan = [];
+//     foreach ($alternatifs as $alternatif) {
+//         foreach ($kriterias as $kriteria) {
+//             $nilai = Penilaian::where('alternatif_id', $alternatif->id)
+//                 ->where('kriteria_id', $kriteria->id)
+//                 ->value('nilai') ?? 0;
+//             $profil_jurusan[$alternatif->id][$kriteria->id] = $nilai;
+//         }
+//     }
+
+//     // Hitung semua selisih untuk normalisasi
+//     $all_selisih = [];
+//     foreach ($alternatifs as $alternatif) {
+//         foreach ($kriterias as $kriteria) {
+//             $all_selisih[] = abs($nilai_siswa[$kriteria->id] - $profil_jurusan[$alternatif->id][$kriteria->id]);
+//         }
+//     }
+//     $max_selisih = max($all_selisih) ?: 1; // Hindari pembagian nol
+
+//     // HITUNG SKOR AKHIR SMART untuk setiap jurusan
+//     $hasilAkhir = [];
+//     foreach ($alternatifs as $alternatif) {
+//         $totalSkor = 0;
+//         foreach ($kriterias as $kriteria) {
+//             $bobot = $kriteria->bobot_kriteria; // Langsung dari DB (bukan normalisasiBobot jika belum ada)
+//             $selisih = abs($nilai_siswa[$kriteria->id] - $profil_jurusan[$alternatif->id][$kriteria->id]);
+//             $utility = 1 - ($selisih / $max_selisih);
+//             $totalSkor += $utility * $bobot;
+//         }
+//         NilaiAkhirSiswa::updateOrCreate(
+//             ['alternatif_id' => $alternatif->id, 'siswa_id' => $siswa->id],
+//             ['nilai_akhir' => round($totalSkor, 4)]
+//         );
+//         $hasilAkhir[] = (object)[
+//             'nama_alternatif' => $alternatif->nama_alternatif,
+//             'nilai_akhir' => round($totalSkor, 4)
+//         ];
+//     }
+//     // Urutkan berdasarkan skor tertinggi
+//     usort($hasilAkhir, fn($a, $b) => $b->nilai_akhir <=> $a->nilai_akhir);
+
+//     return view('hasil.rekomendasi', [
+//         'hasilAkhir' => $hasilAkhir,
+//         'siswa' => $siswa,
+//         'alternatifs' => $alternatifs,
+//     ]);
+// }
+    public function rekomendasiSMART($user_id)
+    {
+        // Ambil user dengan role siswa
+        $siswa = User::where('role', 'siswa')->findOrFail($user_id);
+        $kriterias = Kriteria::with('NormalisasiBobot')->get();
+        $alternatifs = Alternatif::all();
+
+        // 1. Ambil nilai siswa per kriteria
+        $nilai_siswa = [];
         foreach ($kriterias as $kriteria) {
-            $nilai = Penilaian::where('alternatif_id', $alternatif->id)
-                ->where('kriteria_id', $kriteria->id)
-                ->value('nilai') ?? 0;
-            $profil_jurusan[$alternatif->id][$kriteria->id] = $nilai;
-        }
-    }
-
-    // Hitung semua selisih untuk normalisasi
-    $all_selisih = [];
-    foreach ($alternatifs as $alternatif) {
-        foreach ($kriterias as $kriteria) {
-            $all_selisih[] = abs($nilai_siswa[$kriteria->id] - $profil_jurusan[$alternatif->id][$kriteria->id]);
-        }
-    }
-    $max_selisih = max($all_selisih) ?: 1; // Hindari pembagian nol
-
-    // HITUNG SKOR AKHIR SMART untuk setiap jurusan
-    $hasilAkhir = [];
-    foreach ($alternatifs as $alternatif) {
-        $totalSkor = 0;
-        foreach ($kriterias as $kriteria) {
-            $bobot = $kriteria->bobot_kriteria; // Langsung dari DB (bukan normalisasiBobot jika belum ada)
-            $selisih = abs($nilai_siswa[$kriteria->id] - $profil_jurusan[$alternatif->id][$kriteria->id]);
-            $utility = 1 - ($selisih / $max_selisih);
-            $totalSkor += $utility * $bobot;
-        }
-        NilaiAkhirSiswa::updateOrCreate(
-            ['alternatif_id' => $alternatif->id, 'siswa_id' => $siswa->id],
-            ['nilai_akhir' => round($totalSkor, 4)]
-        );
-        $hasilAkhir[] = (object)[
-            'nama_alternatif' => $alternatif->nama_alternatif,
-            'nilai_akhir' => round($totalSkor, 4)
-        ];
-    }
-    // Urutkan berdasarkan skor tertinggi
-    usort($hasilAkhir, fn($a, $b) => $b->nilai_akhir <=> $a->nilai_akhir);
-
-    return view('hasil.rekomendasi', [
-        'hasilAkhir' => $hasilAkhir,
-        'siswa' => $siswa,
-        'alternatifs' => $alternatifs,
-    ]);
-}
-public function rekomendasiSMART($siswa_id)
-{
-    $siswa = Siswa::findOrFail($siswa_id);
-    $kriterias = Kriteria::with('NormalisasiBobot')->get();
-    $alternatifs = Alternatif::all();
-
-    // 1. Ambil nilai siswa per kriteria
-    $nilai_siswa = [];
-    foreach ($kriterias as $kriteria) {
-        $nilai_siswa[$kriteria->id] = PenilaianSiswa::where('siswa_id', $siswa->id)
-            ->where('kriteria_id', $kriteria->id)
-            ->value('nilai') ?? 0;
-    }
-
-    // 2. Ambil nilai ideal tiap jurusan per kriteria
-    $nilai_jurusan = [];
-    foreach ($alternatifs as $alternatif) {
-        foreach ($kriterias as $kriteria) {
-            $nilai_jurusan[$alternatif->id][$kriteria->id] = Penilaian::where('alternatif_id', $alternatif->id)
+            $nilai_siswa[$kriteria->id] = PenilaianSiswa::where('user_id', $siswa->id)
                 ->where('kriteria_id', $kriteria->id)
                 ->value('nilai') ?? 0;
         }
-    }
 
-    // 3. Hitung max selisih untuk normalisasi
-    $all_selisih = [];
-    foreach ($alternatifs as $alternatif) {
-        foreach ($kriterias as $kriteria) {
-            $all_selisih[] = abs($nilai_siswa[$kriteria->id] - $nilai_jurusan[$alternatif->id][$kriteria->id]);
+        // 2. Ambil nilai ideal tiap jurusan per kriteria
+        $nilai_jurusan = [];
+        foreach ($alternatifs as $alternatif) {
+            foreach ($kriterias as $kriteria) {
+                $nilai_jurusan[$alternatif->id][$kriteria->id] = Penilaian::where('alternatif_id', $alternatif->id)
+                    ->where('kriteria_id', $kriteria->id)
+                    ->value('nilai') ?? 0;
+            }
         }
-    }
-    $max_selisih = max($all_selisih) ?: 1;
 
-    // 4. Hitung utility dan nilai akhir untuk setiap jurusan
-    $hasil = [];
-    foreach ($alternatifs as $alternatif) {
-        $total = 0;
-        $rincian = [];
-        foreach ($kriterias as $kriteria) {
-            // Pakai bobot normalisasi dari tabel normalisasi_bobots
-            $bobot = $kriteria->NormalisasiBobot->normalisasi ?? 0;
+        // 3. Hitung max selisih untuk normalisasi
+        $all_selisih = [];
+        foreach ($alternatifs as $alternatif) {
+            foreach ($kriterias as $kriteria) {
+                $all_selisih[] = abs($nilai_siswa[$kriteria->id] - $nilai_jurusan[$alternatif->id][$kriteria->id]);
+            }
+        }
+        $max_selisih = max($all_selisih) ?: 1;
 
-            $selisih = abs($nilai_siswa[$kriteria->id] - $nilai_jurusan[$alternatif->id][$kriteria->id]);
-            $utility = 1 - ($selisih / $max_selisih);
+        // 4. Hitung utility dan nilai akhir untuk setiap jurusan
+        $hasil = [];
+        foreach ($alternatifs as $alternatif) {
+            $total = 0;
+            $rincian = [];
+            foreach ($kriterias as $kriteria) {
+                // Pakai bobot normalisasi dari tabel normalisasi_bobots
+                $bobot = $kriteria->NormalisasiBobot->normalisasi ?? 0;
 
-            $skor = $utility * $bobot;
-            $total += $skor;
+                $selisih = abs($nilai_siswa[$kriteria->id] - $nilai_jurusan[$alternatif->id][$kriteria->id]);
+                $utility = 1 - ($selisih / $max_selisih);
 
-            // Untuk penjelasan detail per kriteria (optional)
-            $rincian[] = [
-                'kriteria' => $kriteria->nama_kriteria,
-                'nilai_siswa' => $nilai_siswa[$kriteria->id],
-                'nilai_ideal' => $nilai_jurusan[$alternatif->id][$kriteria->id],
-                'selisih' => $selisih,
-                'utility' => round($utility, 4),
-                'bobot_normalisasi' => $bobot,
-                'skor' => round($skor, 4)
+                $skor = $utility * $bobot;
+                $total += $skor;
+
+                // Untuk penjelasan detail per kriteria (optional)
+                $rincian[] = [
+                    'kriteria' => $kriteria->nama_kriteria,
+                    'nilai_siswa' => $nilai_siswa[$kriteria->id],
+                    'nilai_ideal' => $nilai_jurusan[$alternatif->id][$kriteria->id],
+                    'selisih' => $selisih,
+                    'utility' => round($utility, 4),
+                    'bobot_normalisasi' => $bobot,
+                    'skor' => round($skor, 4)
+                ];
+            }
+            $hasil[] = [
+                'jurusan' => $alternatif->nama_alternatif,
+                'total' => round($total, 4),
+                'detail' => $rincian
             ];
         }
-        $hasil[] = [
-            'jurusan' => $alternatif->nama_alternatif,
-            'total' => round($total, 4),
-            'detail' => $rincian
-        ];
+
+        // 5. Urutkan hasil dari skor terbesar ke terkecil dan ambil 4 teratas
+        usort($hasil, fn($a, $b) => $b['total'] <=> $a['total']);
+        $hasil = array_slice($hasil, 0, 4);
+
+        return view('hasil.rekomendasi', compact('hasil', 'siswa', 'kriterias'));
     }
-
-    // 5. Urutkan hasil dari skor terbesar ke terkecil dan ambil 4 teratas
-    usort($hasil, fn($a, $b) => $b['total'] <=> $a['total']);
-    $hasil = array_slice($hasil, 0, 4);
-
-    return view('hasil.rekomendasi', compact('hasil', 'siswa', 'kriterias'));
 }
 
 
-}
+

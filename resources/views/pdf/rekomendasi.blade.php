@@ -15,7 +15,7 @@
 <body>
     <div class="header">
         <h2>Hasil Rekomendasi Jurusan</h2>
-        <p>Nama Siswa: <strong>{{ $siswa->nama_siswa }}</strong></p>
+        <p>Nama Siswa: <strong>{{ $siswa->name}}</strong></p>
     </div>
 
     <table>

@@ -27,10 +27,10 @@
                        <tbody>
         @foreach ($siswa as $alt)
             <tr>
-                <td>{{ $alt->nama_siswa}}</td>
+                <td>{{ $alt->name}}</td>
                 @foreach ($kriteria as $k)
                 @php
-                    $nilai = $alt->penilaiansiswa->where('kriteria_id', $k->id)->first();
+                    $nilai = $alt->penilaianSiswas->where('kriteria_id', $k->id)->first();
                 @endphp
 
                 <td>

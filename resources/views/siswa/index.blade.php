@@ -22,16 +22,18 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
+                            <th>Nisn</th>
+                            <th>Email</th>
                             <th>Nama Siswa</th>
-                            <th>Kelompok minat</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($siswa as $sw)
                             <tr>
-                                <td>{{ $sw->nama_siswa }}</td>
-                                <td>{{ $sw->minat }}</td>
+                                <td>{{ $sw->nisn }}</td>
+                                <td>{{ $sw->email }}</td>
+                                <td>{{ $sw->name }}</td>
                                 <td>
                                         <a href="{{ route('siswa.edit', $sw->id) }}" class="btn btn-sm btn-warning">Edit</a>
                                         <form action="{{ route('siswa.destroy', $sw->id) }}" method="POST" style="display:inline-block;">

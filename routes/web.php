@@ -15,6 +15,7 @@ use App\Http\Controllers\Siswa1Controller;
 use App\Models\NormalisasiBobot;
 use App\Models\PenilaianSiswa;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -35,7 +36,7 @@ Route::middleware('auth','siswa')->group(function(){
     Route::get('/listKriteria/siswas',[Siswa1Controller::class,'showKriteria'])->name('siswas.showKriteria');
     Route::get('/listSiswa',[Siswa1Controller::class,'lihatSiswa'])->name('siswas.lihatSiswa');
     Route::get('/listHasil/{siswa_id}',[Siswa1Controller::class,'lihatHasil'])->name('siswas.lihatHasil');
-    Route::get('/listHasil/{siswa_id}/hasil/pdf',[Siswa1Controller::class,'exportPdf'])->name('siswas.exportPdf');
+    // Route::get('/listHasil/{siswa_id}/hasil/pdf',[Siswa1Controller::class,'exportPdf'])->name('siswas.exportPdf');
 
 
 
@@ -103,8 +104,18 @@ Route::delete('/penilaiansiswa/{siswa}', [PenilaianSiswaController::class, 'dest
 
 Route::get('/utility/{siswa_id}', [SMARTController::class, 'hitungNilaiUtility'])->name('hitung.utilty');
 Route::get('/rekomendasi/{siswa_id}', [SMARTController::class, 'rekomendasiSMART'])->name('rekomendasi.jurusan');
-Route::get('/listHasil/{siswa_id}/hasil/pdf',[Siswa1Controller::class,'exportPdf'])->name('siswas.exportPdf');
+// Route::get('/listHasil/{siswa_id}/hasil/pdf',[Siswa1Controller::class,'exportPdf'])->name('siswas.exportPdf');
 
 
+});
+Route::middleware('auth')->group(function(){
+    Route::get('/listHasil/{siswa_id}/hasil/pdf', function($siswa_id) {
+        $user = Auth::user();
+        if (! in_array($user->role, ['admin','siswa'])) {
+            abort(403);
+        }
+        return app(\App\Http\Controllers\Siswa1Controller::class)
+                   ->exportPdf($siswa_id);
+    })->name('siswas.exportPdf');
 });
 require __DIR__.'/auth.php';

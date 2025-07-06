@@ -83,7 +83,19 @@
 
         <form method="POST" action="{{ route('register') }}" class="mb-3">
           @csrf
-
+          
+          <div class="mb-3">
+            <label for="nisn" class="form-label">Nisn</label>
+            <input
+              id="nisn"
+              name="nisn"
+              type="text"
+              value="{{ old('nisn') }}"
+              required autofocus
+              placeholder="Masukkan nisn"
+              class="form-control bg-light"
+            />
+          </div>
           <div class="mb-3">
             <label for="name" class="form-label">Nama Lengkap</label>
             <input

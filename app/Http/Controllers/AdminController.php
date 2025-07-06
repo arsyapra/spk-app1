@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\Kriteria;
 use App\Models\Sub_kriteria;
 use App\Models\Alternatif;
+use App\Models\User;
 use App\Models\Siswa;
 use App\Models\Nilai_akhir;
 
@@ -15,7 +16,7 @@ class AdminController extends Controller
     $jumlah_Kriteria = Kriteria::count();
     $jumlah_Sub_kriteria = Sub_kriteria::count();
     $jumlahAlternatif = Alternatif::count();
-    $jumlahSiswa = Siswa::count(); // jika ada
+    $jumlahSiswa = User::where('role', 'siswa')->count(); // jika ada
     // Ambil 10 teratas, atau semua
     $ranking = Nilai_akhir::with('alternatif')
         ->orderByDesc('nilai_akhir')

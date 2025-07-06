@@ -8,11 +8,11 @@ class NilaiAkhirSiswa extends Model
 {
     protected $table = 'nilai_akhir_siswas';
 
-    protected $fillable = ['siswa_id', 'nilai_akhir'];
+    protected $fillable = ['user_id', 'nilai_akhir'];
     
-    public function siswa()
+    public function user()
     {
-        return $this->belongsTo(Siswa::class);
+        return $this->belongsTo(User::class);
     }
     // public function alternatif(){
     //     return $this->belongsTo(Alternatif::class);

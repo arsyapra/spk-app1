@@ -7,6 +7,7 @@ use App\Models\Siswa;
 use App\Models\Kriteria;
 use App\Models\Alternatif;
 use App\Models\Sub_kriteria;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;      // import facade
 use Illuminate\Support\Str;           // import Str untuk slug
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +25,7 @@ class Siswa1Controller extends Controller
     $jumlah_Kriteria = Kriteria::count();
     $jumlah_Sub_kriteria = Sub_kriteria::count();
     $jumlahAlternatif = Alternatif::count();
-    $jumlahSiswa = Siswa::count(); // jika ada
+    $jumlahSiswa = User::where('role', 'siswa')->count(); // jika ada
     // Ambil 10 teratas, atau semua
     $ranking = Nilai_akhir::with('alternatif')
         ->orderByDesc('nilai_akhir')
@@ -75,12 +76,16 @@ class Siswa1Controller extends Controller
         return view('siswa.showkriteria', compact('kriterias', 'keyword'));
     }
 
-        public function lihatSiswa()
+    public function lihatSiswa()
     {
-        // Ambil semua siswa beserta penilaian sub-kriteria
-        $siswa = Siswa::with('penilaiansiswa.sub_kriteria')->get();
+        // Ambil hanya user dengan role 'siswa' yang sedang login,
+        // lalu eager-load penilaian sub-kriteria
+        $siswa = User::where('role', 'siswa')
+                     ->where('id', Auth::id())
+                     ->with('penilaianSiswas.sub_kriteria')
+                     ->get();
 
-        // Ambil daftar kriteria untuk header kolom
+        // Daftar kriteria untuk header
         $kriterias = Kriteria::all();
 
         return view('siswa.lihatSiswa', compact('siswa', 'kriterias'));
@@ -114,7 +119,7 @@ public function exportPdf($siswa_id)
     ]);
 
     // 3. Generate nama file dan download
-    $filename = 'rekomendasi-'. Str::slug($data['siswa']->nama_siswa) .'.pdf';
+    $filename = 'rekomendasi-'. Str::slug($data['siswa']->name) .'.pdf';
     return $pdf->download($filename);
 }
 

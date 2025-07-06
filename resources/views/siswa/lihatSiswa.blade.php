@@ -14,7 +14,7 @@
         <table class="table table-striped">
           <thead>
             <tr>
-              <th>#</th>
+              <th>No</th>
               <th>Nama Siswa</th>
               <th class="text-center">Actions</th>
             </tr>
@@ -23,11 +23,11 @@
             @forelse($siswa as $i => $sw)
             <tr>
               <td>{{ $i + 1 }}</td>
-              <td>{{ $sw->nama_siswa }}</td>
+              <td>{{ $sw->name }}</td>
               <td class="text-center">
                 <a href="{{ route('siswas.lihatHasil', ['siswa_id' => $sw->id]) }}"
                    class="btn btn-sm btn-primary">
-                  Hitung Hasil
+                  Hasil
                 </a>
               </td>
             </tr>

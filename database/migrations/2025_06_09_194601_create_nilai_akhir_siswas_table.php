@@ -13,7 +13,7 @@ return new class extends Migration
         {
             Schema::create('nilai_akhir_siswas', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('siswa_id')->constrained()->onDelete('cascade');  // Hubungkan ke tabel siswa
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');  // Hubungkan ke tabel siswa
                 $table->float('nilai_akhir'); // Simpan total nilai SMART siswa
                 $table->timestamps();
             });
